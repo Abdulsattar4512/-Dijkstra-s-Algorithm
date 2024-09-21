@@ -1,0 +1,63 @@
+#include <iostream>
+#include <vector>
+#include <set>
+#include <climits>
+
+using namespace std;
+
+struct Route { int destination, cost; };
+
+vector<int> findShortestPath(int origin, int target, const vector<vector<Route>>& map, int& final_cost) {
+    int nodes = map.size();
+    vector<int> distance(nodes, INT_MAX), previous(nodes, -1);
+    set<pair<int, int>> active_nodes;
+    distance[origin] = 0;
+    active_nodes.insert({0, origin});
+
+    while (!active_nodes.empty()) {
+        int current = active_nodes.begin()->second, current_cost = active_nodes.begin()->first;
+        active_nodes.erase(active_nodes.begin());
+        if (current == target) break;
+        for (auto& route : map[current]) {
+            int neighbor = route.destination, travel_cost = route.cost, new_cost = current_cost + travel_cost;
+            if (new_cost < distance[neighbor]) {
+                active_nodes.erase({distance[neighbor], neighbor});
+                distance[neighbor] = new_cost;
+                previous[neighbor] = current;
+                active_nodes.insert({new_cost, neighbor});
+            }
+        }
+    }
+    final_cost = distance[target];
+    vector<int> path;
+    if (previous[target] != -1 || target == origin) 
+        for (int at = target; at != -1; at = previous[at]) 
+            path.insert(path.begin(), at);
+    return path;
+}
+
+int main() {
+    int num_nodes, num_routes;
+    cout << "Enter the number of locations: "; cin >> num_nodes;
+    cout << "Enter the number of routes: "; cin >> num_routes;
+    vector<vector<Route>> map(num_nodes);
+    cout << "Enter the routes for " << num_routes << " routes:\n";
+    for (int i = 0; i < num_routes; i++) {
+        int from, to, cost;
+        cin >> from >> to >> cost;
+        map[from].push_back({to, cost});
+    }
+    int origin, target;
+    cout << "Enter the starting location: "; cin >> origin;
+    cout << "Enter the destination location: "; cin >> target;
+    int final_cost;
+    vector<int> path = findShortestPath(origin, target, map, final_cost);
+    if (path.empty()) 
+        cout << "No path found from location " << origin << " to location " << target << endl;
+    else {
+        cout << "The shortest path from location " << origin << " to location " << target << " is: ";
+        for (int location : path) cout << location << " ";
+        cout << "\nTotal travel cost: " << final_cost << endl;
+    }
+    return 0;
+}
